@@ -1,0 +1,1219 @@
+CREATE TABLE Librarian
+(
+	LibrarianID INT PRIMARY KEY NOT NULL
+		GENERATED ALWAYS AS IDENTITY
+		(START WITH 1, INCREMENT BY 1, NO CYCLE),
+	LibrarianName VARCHAR(80),
+	LibrarianPhone BIGINT,
+	LibrarianEmail VARCHAR(50)
+);
+
+CREATE TABLE Student
+(
+	StudentID INT PRIMARY KEY NOT NULL
+		CONSTRAINT CK_Student_StudentID
+		CHECK (StudentID > 1000000000 AND StudentID <2000000000),
+	StudentName VARCHAR(80),
+	StudentPhone BIGINT,
+	StudentEmail VARCHAR(50)
+);
+
+CREATE TABLE Publisher
+(
+	PublisherID INT PRIMARY KEY NOT NULL 
+		GENERATED ALWAYS AS IDENTITY
+		(START WITH 1, INCREMENT BY 1, NO CYCLE),
+	PublisherName VARCHAR(80),
+	PublisherAddress VARCHAR(150),
+	PublisherEmail VARCHAR(50),
+	PublisherPhone BIGINT
+);
+
+CREATE TABLE BookClass
+(
+	BookClassID INT PRIMARY KEY NOT NULL
+		CONSTRAINT CK_BookClass_Class
+		CHECK (	BookClassID = 000 OR
+				BookClassID = 100 OR
+				BookClassID = 200 OR
+				BookClassID = 300 OR
+				BookClassID = 400 OR
+				BookClassID = 500 OR
+				BookClassID = 600 OR
+				BookClassID = 700 OR
+				BookClassID = 800 OR
+				BookClassID = 900
+				),
+	Class VARCHAR(50)
+);
+
+CREATE TABLE Author
+(
+	AuthorID INT PRIMARY KEY NOT NULL 
+		GENERATED ALWAYS AS IDENTITY
+		(START WITH 1, INCREMENT BY 1, NO CYCLE),
+	AuthorName VARCHAR(80)
+);
+
+CREATE TABLE Shelf
+(
+	ShelfCode CHAR(5) PRIMARY KEY NOT NULL,
+	ShelfSection INT
+		CONSTRAINT CK_Shelf_ShelfSection
+		CHECK (	ShelfSection > 0 AND ShelfSection < 100 ),
+	ShelfNumber INT
+		CONSTRAINT CK_Shelf_ShelfNumber
+		CHECK (	ShelfNumber > 0 AND ShelfNumber < 100 )
+);
+
+CREATE TABLE Book
+(
+	BookID INT PRIMARY KEY NOT NULL
+		GENERATED ALWAYS AS IDENTITY
+		(START WITH 1, INCREMENT BY 1, NO CYCLE),
+	PublisherID INT,
+	BookClassID INT,
+	ShelfCode CHAR(5),
+	SerialNo BIGINT,
+	BookName VARCHAR(80),
+	YearOfPublish INT
+		CONSTRAINT CK_Book_YearOfPublish
+		CHECK (YearOfPublish > 1000 OR YearOfPublish < 2500),
+	Price DECIMAL(6,2),
+	BookCondition VARCHAR(15) DEFAULT 'AVAILABLE'
+		CONSTRAINT CK_Book_BookCondition
+		CHECK (
+			BookCondition = 'AVAILABLE' OR --AVAILABLE FOR RENTAL--
+			BookCondition = 'NOT AVAILABLE' OR --NOT AVAILABLE FOR RENTAL--
+			BookCondition = 'LIB USE ONLY' OR --ONLY FOR LIBRARY USE--
+			BookCondition = 'RESERVED' OR --RESERVATIONID EXISTS FOR BOOKID--
+			BookCondition = 'MISSING' OR --BOOK IS REPORTED AS MISSING--
+			BookCondition = 'DAMAGED' OR --BOOK IS DAMAGED--
+			BookCondition = 'BILLED' --CHARGE IS GENERATED FOR BOOKID--
+			),
+	FOREIGN KEY (PublisherID) REFERENCES Publisher
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION,
+	FOREIGN KEY (BookClassID) REFERENCES BookClass
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION,
+	FOREIGN KEY (ShelfCode) REFERENCES Shelf
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION
+);
+
+CREATE TABLE BookAuthor
+(
+	BookID INT NOT NULL,
+	AuthorID INT NOT NULL,
+	FOREIGN KEY (BookID) REFERENCES BOOK
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION,
+	FOREIGN KEY (AuthorID) REFERENCES AUTHOR
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION,
+	PRIMARY KEY (BookID, AuthorID)
+);
+
+CREATE TABLE Rental
+(
+	RentalID INT PRIMARY KEY NOT NULL
+		GENERATED ALWAYS AS IDENTITY
+		(START WITH 1, INCREMENT BY 1, NO CYCLE),
+	StudentID INT,
+	LibrarianID INT,
+	RentalDate DATE,
+	ReturnDate DATE,
+	FOREIGN KEY (StudentID) REFERENCES Student
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION,
+	FOREIGN KEY (LibrarianID) REFERENCES Librarian
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION
+);
+
+CREATE TABLE RentalDetails 
+(
+	RentalDetailsID INT PRIMARY KEY NOT NULL
+		GENERATED ALWAYS AS IDENTITY
+		(START WITH 1, INCREMENT BY 1, NO CYCLE),
+	RentalID INT,
+	BookID INT,
+	ActualReturnDate DATE DEFAULT NULL,
+	Charge DECIMAL(6,2) DEFAULT NULL,
+	FOREIGN KEY (RentalID) REFERENCES Rental
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION,
+	FOREIGN KEY (BookID) REFERENCES Book
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION
+);
+
+CREATE TABLE Reservation
+(
+	ReserveID INT PRIMARY KEY NOT NULL
+		GENERATED ALWAYS AS IDENTITY
+		(START WITH 1, INCREMENT BY 1, NO CYCLE),
+	StudentID INT,
+	LibrarianID INT,
+	BookID INT,
+	ReserveDate DATE,
+	FOREIGN KEY (StudentID) REFERENCES Student
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION,
+	FOREIGN KEY (LibrarianID) REFERENCES Librarian
+		ON UPDATE NO ACTION
+		ON DELETE NO ACTION
+);
+
+INSERT INTO Librarian
+VALUES (DEFAULT, 'Eleanora', 60321481445, 'eleanora@nnu.edu.my');
+INSERT INTO Librarian
+VALUES (DEFAULT, 'Judy', 60379563868, 'judy@nnu.edu.my');
+INSERT INTO Librarian
+VALUES (DEFAULT, 'Felicia', 60321480666, 'felicia@nnu.edu.my');
+INSERT INTO Librarian
+VALUES (DEFAULT, 'Brielle', 60356368656, 'brielle@nnu.edu.my');
+INSERT INTO Librarian
+VALUES (DEFAULT, 'Merton', 60362529712, 'merton@nnu.edu.my');
+
+INSERT INTO Librarian
+VALUES (DEFAULT, 'Ryann', 60377813162, 'ryann@nnu.edu.my');
+INSERT INTO Librarian
+VALUES (DEFAULT, 'Kristy', 60378065909, 'kristy@nnu.edu.my');
+INSERT INTO Librarian
+VALUES (DEFAULT, 'Sonal', 60342960528, 'sonal@nnu.edu.my');
+
+INSERT INTO Student
+VALUES (1221101149, 'Chevonne', 60136276361, '1221101149@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1211105688, 'Francis', 60137729564, '1211105688@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1201108250, 'Jayendra', 60139133146, '1201108250@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1201103172, 'Callahan', 60113229132, '1201103172@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1221308718, 'Norton', 60134045363, '1221308718@student.nnu.edu.my');
+
+INSERT INTO Student
+VALUES (1221108364, 'Beau', 60132282888, '1221108364@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1221300498, 'Darla', 60137880018, '1221300498@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1221305203, 'Marinda', 60135161075, '1221305203@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1221301044, 'Sita', 60136251234, '1221304494@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1221303040, 'Glory', 60139173281, '1221303040@student.nnu.edu.my');
+
+INSERT INTO Student
+VALUES (1221208712, 'Ibrahim', 60132142438, '1221208712@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1221301222, 'Pravina', 60132693501, '1221301222@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1211302375, 'John', 60137782015, '1211302375@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1191102350, 'Anna', 60132693474, '1191102350@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1211304795, 'Shelia', 60137873880, '1211304795@student.nnu.edu.my');
+
+INSERT INTO Student
+VALUES (1201307993, 'Kasen', 60132694083, '1201307993@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1211301717, 'Mckayla', 60133324741, '1211301717@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1201308385, 'Kyra', 60134107119, '1201308385@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1211204068, 'Bayley', 60132274143, '1211204068@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1221305204, 'Ferne', 6018431443, '1221305204@student.nnu.edu.my');
+
+INSERT INTO Student
+VALUES (1221305279, 'Anisha', 60135122977, '1221305279@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1211105085, 'Aura', 60134106373, '1211105085@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1221304645, 'Cece', 60132162037, '1221304645@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1181206202, 'Pete', 60138075920, '1181206202@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1221405993, 'Connor', 60134252101, '1221405993@student.nnu.edu.my');
+
+INSERT INTO Student
+VALUES (1221407600, 'Danielle', 60134044271, '1221407600@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1211206183, 'Marjorie', 60137877175, '1211206183@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1211401726, 'Sammi', 60139735230, '1211401726@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1201202218, 'Lynn', 60137727664, '1201202218@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1201209869, 'Abhinav', 60132070528, '1201209869@student.nnu.edu.my');
+
+INSERT INTO Student
+VALUES (1181209676, 'Zhen', 60173533362, '1181209676@student.nnu.edu.my');
+INSERT INTO Student
+VALUES (1221209586, 'Corina', 60133345117, '1221209586@student.nnu.edu.my');
+
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Bioscied', '34, 1st Floor, Jalan Tanjung SD 13/2, Taman Sri Damansara, 52200 Kuala Lumpur, Malaysia', 'enquiries@bioscied.co', 60362580694);
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Sunflower Prints Inc', '8, Level 19, The Heritage Tower, Jalan Pahang, Setapak, 53000 Kuala Lumpur, Malaysia', 'hello@sunflowerprints.inc', 60378062263);
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Prodata Inc', '2nd Floor, Blok 488D, One Stop Centre, Jalan Burma, 10350 Penang, Malaysia', 'enquiries@prodata.inc', 60362572061);
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Eller Learning', 'Wisma Eller, Jalan Ampang, 50450 Kuala Lumpur, Malaysia', 'hi@ellerlearning.com', 60342560095);
+INSERT INTO Publisher
+VALUES (DEFAULT, 'HCI Publishing', '2nd Floor, The Mall, Jalan Putra, 50350 Kuala Lumpur, Malaysia', 'business@hcipublishing.com.my', 60356317722);
+
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Cadence Media Group', 'Lot 6, Block 44, Lebuh Tiga, 90000 Sandakan, Sabah, Malaysia', 'enquiries@cadence.com', 60341057849);
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Heinemann Educational Books', '55, Jalan Raja Perempuan Mazwin, Taman Rishah, 30100 Perak, Malaysia', 'hello@heinemann.com', 60351626217);
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Joan Adams Learning', 'Taman Tayton View, 6th Mile, Off Jalan Cheras, 56000 Kuala Lumpur, Malaysia', 'hello@joanadamslearning.co', 60340427895);
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Idaho Press-Tribune Inc', '11, Seri Geriang, 35900 Hulu Bernam, Selangor, Malaysia', 'enquiries@idahopt.inc', 60326930469);
+
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Hickory Hills Publishing Co', 'Sungei Wang Plaza, Jalan Bukit Bintang, 55100 Kuala Lumpur, Malaysia', 'hi@hickoryhills.pub', 60387364511);
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Woracle Publishing Inc', '367, Jalan Kuantan-Kemaman, Kampung Cherating Lama, 26080 Kuantan, Malaysia', 'enquiries@woracle.com', 60333731617);
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Sengage Learning', '3, Jalan 4/27F, Off Jalan Genting, Wangsa Maju, 53300 Klang, Selangor, Malaysia', 'hello@sengage.com', 60326978623);
+INSERT INTO Publisher
+VALUES (DEFAULT, 'Appleson Publishing', '1, Jalan Bakawali 11, Taman Johor Jaya, 81100 Johor, Malaysia', 'hello@appleson.pub', 60326932804);
+
+INSERT INTO BookClass
+VALUES (000, 'Computer Science, Information and General Works');
+INSERT INTO BookClass
+VALUES (100, 'Philosophy and Psychology');
+INSERT INTO BookClass
+VALUES (200, 'Religion');
+INSERT INTO BookClass
+VALUES (300, 'Social Sciences');
+INSERT INTO BookClass
+VALUES (400, 'Language');
+INSERT INTO BookClass
+VALUES (500, 'Science');
+INSERT INTO BookClass
+VALUES (600, 'Technology');
+INSERT INTO BookClass
+VALUES (700, 'Arts and Recreation');
+INSERT INTO BookClass
+VALUES (800, 'Literature');
+INSERT INTO BookClass
+VALUES (900, 'History and Geography');
+
+INSERT INTO Author
+VALUES (DEFAULT, 'Annis Irma');
+INSERT INTO Author
+VALUES (DEFAULT, 'Brigham Mack');
+INSERT INTO Author
+VALUES (DEFAULT, 'Sharifah Malandra');
+INSERT INTO Author
+VALUES (DEFAULT, 'Robina Ireland');
+INSERT INTO Author
+VALUES (DEFAULT, 'Chester Roger');
+
+INSERT INTO Author
+VALUES (DEFAULT, 'Aleah Everard');
+INSERT INTO Author
+VALUES (DEFAULT, 'Miranda Gail');
+INSERT INTO Author
+VALUES (DEFAULT, 'Torin Twyla');
+INSERT INTO Author
+VALUES (DEFAULT, 'Robena Herbert');
+INSERT INTO Author
+VALUES (DEFAULT, 'Clarissa Constance');
+
+INSERT INTO Author
+VALUES (DEFAULT, 'Genevieve Dhananjay');
+INSERT INTO Author
+VALUES (DEFAULT, 'Marni Chandana');
+INSERT INTO Author
+VALUES (DEFAULT, 'Braden Iris');
+INSERT INTO Author
+VALUES (DEFAULT, 'Jenifer Alfred');
+INSERT INTO Author
+VALUES (DEFAULT, 'Brock Michael');
+
+INSERT INTO Shelf
+VALUES ('S0101', 1, 1);
+INSERT INTO Shelf
+VALUES ('S0102', 1, 2);
+INSERT INTO Shelf
+VALUES ('S0103', 1, 3);
+INSERT INTO Shelf
+VALUES ('S0104', 1, 4);
+INSERT INTO Shelf
+VALUES ('S0105', 1, 5);
+
+INSERT INTO Shelf
+VALUES ('S0201', 2, 1);
+INSERT INTO Shelf
+VALUES ('S0202', 2, 2);
+INSERT INTO Shelf
+VALUES ('S0203', 2, 3);
+INSERT INTO Shelf
+VALUES ('S0204', 2, 4);
+INSERT INTO Shelf
+VALUES ('S0205', 2, 5);
+
+INSERT INTO Shelf
+VALUES ('S0301', 3, 1);
+INSERT INTO Shelf
+VALUES ('S0302', 3, 2);
+INSERT INTO Shelf
+VALUES ('S0303', 3, 3);
+INSERT INTO Shelf
+VALUES ('S0304', 3, 4);
+INSERT INTO Shelf
+VALUES ('S0305', 3, 5);
+
+INSERT INTO Shelf
+VALUES ('S0401', 4, 1);
+INSERT INTO Shelf
+VALUES ('S0402', 4, 2);
+INSERT INTO Shelf
+VALUES ('S0403', 4, 3);
+INSERT INTO Shelf
+VALUES ('S0404', 4, 4);
+INSERT INTO Shelf
+VALUES ('S0405', 4, 5);
+
+INSERT INTO Shelf
+VALUES ('S0501', 5, 1);
+INSERT INTO Shelf
+VALUES ('S0502', 5, 2);
+INSERT INTO Shelf
+VALUES ('S0503', 5, 3);
+INSERT INTO Shelf
+VALUES ('S0504', 5, 4);
+INSERT INTO Shelf
+VALUES ('S0505', 5, 5);
+
+INSERT INTO Book
+VALUES (DEFAULT, 7, 000, 'S0101', 9237412398742, 'Computer Architecture and Organization', 2020, 315.30, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 7, 000, 'S0101', 6372528593245, 'Discrete Mathematics with its Applications', 2018, 345.50, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 8, 000, 'S0102', 4674098503943, 'One Piece', 2002, 54.50, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 7, 000, 'S0102', 8920384963823, 'Spirited Away', 1998, 323.56, 'LIB USE ONLY');
+INSERT INTO Book
+VALUES (DEFAULT, 1, 100, 'S0103', 0923647812743, 'Atomic Habits', 2009, 34.12, DEFAULT);
+
+INSERT INTO Book
+VALUES (DEFAULT, 5, 000, 'S0102', 7826352647890, 'Running on the Roof of the World', 2007, 67.34, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 5, 000, 'S0102', 8938462783764, 'Harry Potter and the Philosopher Stone', 2003, 63.99, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 6, 500, 'S0204', 7835930459682, 'Chemistry', 1997, 234.80, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 3, 600, 'S0205', 2946283759034, 'Fundamentals of Bioengineering', 2015, 134.50, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 2, 000, 'S0101', 7892345626378, 'Calculus', 2017, 256.00, DEFAULT);
+
+INSERT INTO Book
+VALUES (DEFAULT, 4, 800, 'S0302', 7892345626378, 'Adventures of Molly Mood', 2013, 16.00, 'NOT AVAILABLE');
+INSERT INTO Book
+VALUES (DEFAULT, 4, 000, 'S0102', 7892345626378, 'Using Java 2', 2013, 782.00, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 3, 200, 'S0205', 6374827469123, 'The Miracle of Theism', 2017, 87.50, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 3, 300, 'S0301', 6728475123904, 'Socialism across The World', 2015, 98.50, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 3, 400, 'S0401', 8937527364823, 'Japanese for Beginners', 2015, 201.88, DEFAULT);
+
+INSERT INTO Book
+VALUES (DEFAULT, 3, 400, 'S0401', 6738429384721, 'Korean from Zero to Hero', 2022, 37.88, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 3, 900, 'S0504', 9592670266769, 'The Guns of August', 2021, 231.88, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 3, 800, 'S0502', 9874505376826, 'The Catcher in the Rye', 2020, 98.21, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 3, 700, 'S0404', 8074431102930, 'Steal like an Artist', 2019, 142.90, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 3, 600, 'S0401', 6684181963363, 'The Soul of a New Machine', 2018, 152.90, DEFAULT);
+
+INSERT INTO Book
+VALUES (DEFAULT, 3, 800, 'S0502', 2946283759034, 'Wuthering Heights', 2013, 65.20, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 3, 900, 'S0503', 0486054388214, 'Earth and its Content', 2014, 242.30, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 3, 700, 'S0404', 9257310945337, 'Through the Lens of Saiful Nang', 2022, 189.00, DEFAULT);
+INSERT INTO Book
+VALUES (DEFAULT, 3, 700, 'S0405', 8674801196778, 'Performing Arts', 2016, 132.80, DEFAULT);
+
+INSERT INTO BookAuthor
+VALUES (1, 1);
+INSERT INTO BookAuthor
+VALUES (2, 6);
+INSERT INTO BookAuthor
+VALUES (3, 8);
+INSERT INTO BookAuthor
+VALUES (4, 7);
+INSERT INTO BookAuthor
+VALUES (5, 10);
+
+INSERT INTO BookAuthor
+VALUES (6, 3);
+INSERT INTO BookAuthor
+VALUES (7, 4);
+INSERT INTO BookAuthor
+VALUES (8, 1);
+INSERT INTO BookAuthor
+VALUES (9, 7);
+INSERT INTO BookAuthor
+VALUES (10, 7);
+
+INSERT INTO BookAuthor
+VALUES (9, 6);
+INSERT INTO BookAuthor
+VALUES (4, 1);
+INSERT INTO BookAuthor
+VALUES (4, 2);
+INSERT INTO BookAuthor
+VALUES (12, 9);
+INSERT INTO BookAuthor
+VALUES (12, 11);
+INSERT INTO BookAuthor
+VALUES (12, 12);
+
+INSERT INTO Rental
+VALUES (DEFAULT, 1221305203, 2, DATE('2022-11-08'), DATE('2022-11-29'));
+INSERT INTO Rental
+VALUES (DEFAULT, 1221208712, 8, DATE('2022-11-13'), DATE('2022-12-04'));
+INSERT INTO Rental
+VALUES (DEFAULT, 1221101149, 1, DATE('2023-03-08'), DATE('2023-03-29'));
+INSERT INTO Rental
+VALUES (DEFAULT, 1211105688, 1, DATE('2023-03-08'), DATE('2023-03-29'));
+INSERT INTO Rental
+VALUES (DEFAULT, 1201209869, 5, DATE('2023-04-02'), DATE('2023-04-23'));
+
+INSERT INTO Rental
+VALUES (DEFAULT, 1211302375, 5, DATE('2023-05-18'), DATE('2023-06-08'));
+INSERT INTO Rental
+VALUES (DEFAULT, 1211401726, 4, DATE('2023-05-27'), DATE('2023-06-17'));
+INSERT INTO Rental
+VALUES (DEFAULT, 1221407600, 3, DATE('2023-05-29'), DATE('2023-06-19'));
+INSERT INTO Rental
+VALUES (DEFAULT, 1211206183, 7, DATE('2023-06-01'), DATE('2023-06-22'));
+INSERT INTO Rental
+VALUES (DEFAULT, 1221407600, 6, DATE('2023-06-06'), DATE('2023-06-27'));
+
+INSERT INTO Rental 
+VALUES (DEFAULT, 1221208712, 8, DATE('2023-05-01'), DATE('2023-05-14'));
+
+INSERT INTO RentalDetails
+VALUES (DEFAULT, 1, 1, DATE('2022-11-21'), DEFAULT);
+INSERT INTO RentalDetails
+VALUES (DEFAULT, 2, 5, DATE('2022-11-25'), DEFAULT);
+INSERT INTO RentalDetails
+VALUES (DEFAULT, 3, 8, DATE('2023-03-20'), DEFAULT);
+INSERT INTO RentalDetails
+VALUES (DEFAULT, 3, 9, DATE('2023-03-20'), DEFAULT);
+INSERT INTO RentalDetails
+VALUES (DEFAULT, 4, 10, DATE('2023-03-16'), DEFAULT);
+
+INSERT INTO RentalDetails
+VALUES (DEFAULT, 5, 8, DATE('2023-04-22'), DEFAULT);
+INSERT INTO RentalDetails
+VALUES (DEFAULT, 6, 9, DATE('2023-06-01'), DEFAULT);
+INSERT INTO RentalDetails
+VALUES (DEFAULT, 6, 7, DATE('2023-06-01'), DEFAULT);
+INSERT INTO RentalDetails
+VALUES (DEFAULT, 6, 5, DATE('2023-06-01'), DEFAULT);
+INSERT INTO RentalDetails
+VALUES (DEFAULT, 7, 3, DATE('2023-06-12'), DEFAULT);
+
+INSERT INTO RENTALDETAILS
+VALUES (DEFAULT, 8, 2, DATE('2023-06-12'), DEFAULT);
+INSERT INTO RENTALDETAILS
+VALUES (DEFAULT, 9, 4, DATE('2023-06-11'), DEFAULT);
+INSERT INTO RENTALDETAILS
+VALUES (DEFAULT, 10, 2, DATE('2023-06-12'), DEFAULT);
+
+INSERT INTO Reservation
+VALUES (DEFAULT, 1221305203, 3, 1, DATE('2022-11-05'), DEFAULT);
+INSERT INTO Reservation
+VALUES (DEFAULT, 1221208712, 5, 4, DATE('2022-10-29'), DEFAULT);
+INSERT INTO Reservation
+VALUES (DEFAULT, 1221308718, 1, 5, DATE('2022-11-13'), DEFAULT);
+INSERT INTO Reservation
+VALUES (DEFAULT, 1221101149, 3, 8, DATE('2023-03-03'), DEFAULT);
+INSERT INTO Reservation
+VALUES (DEFAULT, 1181206202, 2, 9, DATE('2023-03-03'), DEFAULT);
+
+INSERT INTO Reservation
+VALUES (DEFAULT, 1211304795, 2, 7, DATE('2022-12-18'), DEFAULT);
+INSERT INTO Reservation
+VALUES (DEFAULT, 1191102350, 1, 6, DATE('2022-12-19'), DEFAULT);
+INSERT INTO Reservation
+VALUES (DEFAULT, 1201307993, 6, 2, DATE('2023-02-25'), DEFAULT);
+INSERT INTO Reservation
+VALUES (DEFAULT, 1201308385, 5, 3, DATE('2023-03-22'), DEFAULT);
+INSERT INTO Reservation
+VALUES (DEFAULT, 1211204068, 7, 10, DATE('2023-01-08'), DEFAULT);
+
+-- ac1
+SELECT PUBLISHER.PUBLISHERNAME,
+       COUNT(DISTINCT AUTHOR.AUTHORID) AS NUMBEROFAUTHORS
+FROM PUBLISHER
+JOIN BOOK ON PUBLISHER.PUBLISHERID = BOOK.PUBLISHERID
+JOIN BOOKAUTHOR ON BOOK.BOOKID = BOOKAUTHOR.BOOKID
+JOIN AUTHOR ON BOOKAUTHOR.AUTHORID = AUTHOR.AUTHORID
+GROUP BY PUBLISHER.PUBLISHERNAME;
+
+--ac2
+
+SELECT PUBLISHER.PUBLISHERNAME,
+       COUNT(BOOK.BOOKID) AS NUMBEROFBOOKS
+FROM PUBLISHER
+JOIN BOOK ON PUBLISHER.PUBLISHERID = BOOK.PUBLISHERID
+GROUP BY PUBLISHER.PUBLISHERNAME;
+
+--ac3
+SELECT *
+FROM
+  (SELECT COUNT(*) AS SINGLEAUTHORBOOKS
+   FROM
+     (SELECT BOOKID
+      FROM BOOKAUTHOR
+      GROUP BY BOOKID
+      HAVING COUNT(*) = 1)),
+
+  (SELECT COUNT(*) AS MULTIPLEAUTHORBOOKS
+   FROM
+     (SELECT BOOKID
+      FROM BOOKAUTHOR
+      GROUP BY BOOKID
+      HAVING COUNT(*) <> 1))
+      
+--ac4
+SELECT BOOKCLASS.BOOKCLASSID,
+       CLASS,
+       COUNT (*) AS TOTAL
+FROM BOOK
+LEFT JOIN BOOKCLASS ON BOOKCLASS.BOOKCLASSID = BOOK.BOOKCLASSID
+GROUP BY BOOKCLASS.BOOKCLASSID,
+         BOOKCLASS.CLASS
+
+--amax1
+SELECT BCMAX.CLASS,
+       B.BOOKNAME,
+       B.PRICE,
+       B.BOOKCONDITION,
+       CASE
+           WHEN B.BOOKCONDITION = 'NOT AVAILABLE' THEN
+                  (SELECT R.RENTALID
+                   FROM RENTAL R
+                   INNER JOIN RENTALDETAILS RD ON R.RENTALID = RD.RENTALID
+                   WHERE RD.BOOKID = B.BOOKID
+                     AND R.RETURNDATE IS NULL
+                   ORDER BY R.RENTALDATE DESC
+                   LIMIT 1)
+           WHEN B.BOOKCONDITION = 'RESERVED' THEN
+                  (SELECT RES.RESERVEID
+                   FROM RESERVATION RES
+                   WHERE RES.BOOKID = B.BOOKID
+                   ORDER BY RES.RESERVEDATE DESC
+                   LIMIT 1)
+           ELSE NULL
+       END AS TRANSACTIONID
+FROM
+  (SELECT BC.BOOKCLASSID,
+          BC.CLASS,
+          MAX(B.PRICE) AS MAXPRICE
+   FROM BOOKCLASS BC
+   JOIN BOOK B ON BC.BOOKCLASSID = B.BOOKCLASSID
+   GROUP BY BC.BOOKCLASSID,
+            BC.CLASS) AS BCMAX
+JOIN BOOK B ON BCMAX.BOOKCLASSID = B.BOOKCLASSID
+AND BCMAX.MAXPRICE = B.PRICE
+ORDER BY BCMAX.CLASS;
+
+--amax2
+SELECT T1.RANK,
+       T1.TIMESRENTED,
+       T1.BOOKID,
+       BOOKNAME,
+       BOOKCLASSID,
+       SHELFCODE,
+       YEAROFPUBLISH,
+       BOOKCONDITION
+FROM
+  (SELECT DENSE_RANK() OVER (
+                             ORDER BY (COUNT(BOOKID)) DESC) AS RANK,
+                            COUNT(BOOKID) AS TIMESRENTED,
+                            BOOKID
+   FROM RENTALDETAILS
+   GROUP BY BOOKID) AS T1
+LEFT JOIN BOOK ON T1.BOOKID = BOOK.BOOKID
+WHERE RANK <= 3
+ORDER BY RANK
+
+--amin1
+SELECT BC.BookClassID,
+       BC.Class,
+       COUNT(B.BookID) AS NumBooks
+FROM BookClass BC
+LEFT JOIN Book B ON BC.BookClassID = B.BookClassID
+GROUP BY BC.BookClassID,
+         BC.Class
+HAVING COUNT(B.BookID) =
+  (SELECT MIN(BookCount)
+   FROM
+     (SELECT COUNT(B.BookID) AS BookCount
+      FROM BookClass BC
+      LEFT JOIN Book B ON BC.BookClassID = B.BookClassID
+      GROUP BY BC.BookClassID) AS BookCounts);
+     
+--amin2
+CREATE OR REPLACE VARIABLE MINBOOKS INTEGER
+
+SET MINBOOKS =
+  (SELECT MIN(BOOKCOUNT)
+   FROM
+     (SELECT COUNT(*) BOOKCOUNT
+      FROM SHELF
+      GROUP BY SHELFCODE))
+
+
+SELECT SHELFCODE,
+       TOTALBOOKS,
+       SHELFSECTION,
+       SHELFNUMBER
+FROM
+  (SELECT SHELFCODE,
+          COUNT(SHELFCODE) AS TOTALBOOKS,
+          SHELFSECTION,
+          SHELFNUMBER
+   FROM
+     (SELECT BOOK.SHELFCODE,
+             SHELFSECTION,
+             SHELFNUMBER
+      FROM SHELF
+      JOIN BOOK ON BOOK.SHELFCODE = SHELF.SHELFCODE) AS T1
+   GROUP BY SHELFCODE,
+            SHELFSECTION,
+            SHELFNUMBER)
+WHERE TOTALBOOKS = MINBOOKS
+
+--aa1
+SELECT T1.STUDENTID,
+       AVG(DAYS(T1.ACTUALRETURNDATE) - DAYS(T1.RENTALDATE)) AS AVERAGEDAYSTAKENTORETURN
+FROM
+  (SELECT STUDENT.STUDENTID,
+          RENTALDETAILS.ACTUALRETURNDATE,
+          RENTAL.RENTALDATE
+   FROM RENTAL,
+        STUDENT,
+        RENTALDETAILS
+   WHERE RENTAL.STUDENTID = STUDENT.STUDENTID
+     AND RENTALDETAILS.RENTALID = RENTAL.RENTALID) AS T1
+WHERE ACTUALRETURNDATE IS NOT NULL
+GROUP BY STUDENTID;
+
+--aa2
+SELECT AVG(DAYS(T1.ACTUALRETURNDATE) - DAYS(T1.RENTALDATE)) AS AVERAGEDAYSTAKENTORETURN
+FROM
+  (SELECT STUDENT.STUDENTID,
+          RENTALDETAILS.ACTUALRETURNDATE,
+          RENTAL.RENTALDATE
+   FROM RENTAL,
+        STUDENT,
+        RENTALDETAILS
+   WHERE RENTAL.STUDENTID = STUDENT.STUDENTID
+     AND RENTALDETAILS.RENTALID = RENTAL.RENTALID) AS T1
+WHERE ACTUALRETURNDATE IS NOT NULL;
+
+--aa3
+SELECT AVG(BORROWEDBOOKS) AS AVERAGEBOOKSREAD
+FROM
+  (SELECT STUDENTID,
+          COUNT(*) AS BORROWEDBOOKS
+   FROM
+     (SELECT RENTAL.STUDENTID,
+             RENTALDETAILS.RENTALDETAILSID
+      FROM RENTALDETAILS,
+           RENTAL
+      WHERE RENTALDETAILS.RENTALID = RENTAL.RENTALID)
+   GROUP BY STUDENTID);
+         
+ --aa4
+SELECT AVG(BOOKSHANDLED) AS AVERAGEBOOKSHANDLED
+FROM
+  (SELECT COUNT(*) AS BOOKSHANDLED
+   FROM RENTALDETAILS RD
+   JOIN RENTAL R ON RD.RENTALID = R.RENTALID
+   GROUP BY EXTRACT(MONTH
+                    FROM R.RENTALDATE),
+            R.LIBRARIANID) AS MONTHLYBOOKSHANDLED;
+           
+--as1
+SELECT R.STUDENTID,
+       RD.ACTUALRETURNDATE,
+       SUM(RD.CHARGE) AS TOTALPENALTY
+FROM RENTALDETAILS RD
+JOIN RENTAL R ON RD.RENTALID = R.RENTALID
+GROUP BY R.STUDENTID,
+         RD.ACTUALRETURNDATE;
+
+--as2
+CREATE OR REPLACE VARIABLE STARTDATERANGE DATE;
+CREATE OR REPLACE VARIABLE ENDDATERANGE DATE;
+
+SET STARTDATERANGE = '2023-06-01';
+SET ENDDATERANGE = '2023-06-30';
+
+SELECT SUM(RentalDetails.Charge) AS TotalPenalty
+FROM RentalDetails,
+     Rental
+WHERE RentalDetails.RentalID = Rental.RentalID
+  AND Rental.RentalDate >= STARTDATERANGE 
+  AND Rental.RentalDate <= ENDDATERANGE;
+ 
+ --q1
+ SELECT STUDENTID,
+       STUDENTNAME,
+       BOOKID,
+       COUNT(*) AS TOTALTIMESRENTED
+FROM
+  (SELECT RENTAL.STUDENTID,
+          STUDENTNAME,
+          BOOKID
+   FROM RENTALDETAILS,
+        STUDENT,
+        RENTAL
+   WHERE RENTAL.RENTALID = RENTALDETAILS.RENTALID
+     AND STUDENT.STUDENTID = RENTAL.STUDENTID)
+GROUP BY STUDENTID,
+         STUDENTNAME,
+         BOOKID
+HAVING COUNT(*) > 1;
+
+--q2
+SELECT BOOKCLASSID,
+       CLASS,
+       COUNT(*) AS NUMBEROFBOOKS
+FROM BOOKCLASS
+GROUP BY BOOKCLASSID,
+         CLASS
+HAVING COUNT(*) > 0
+
+--q3
+SELECT T1.STUDENTID,
+       T1.STUDENTNAME,
+       COUNT(DISTINCT T1.BOOKID) AS TotalRentedBooks
+FROM
+  (SELECT STUDENT.STUDENTID,
+          STUDENT.STUDENTNAME,
+          RENTALDETAILS.RENTALDETAILSID,
+          RENTAL.RENTALID,
+          RENTALDETAILS.BOOKID
+   FROM RENTAL,
+        STUDENT,
+        RENTALDETAILS
+   WHERE RENTAL.STUDENTID = STUDENT.STUDENTID
+     AND RENTALDETAILS.RENTALID = RENTAL.RENTALID) AS T1
+GROUP BY T1.StudentID,
+         T1.StudentName
+
+--q4
+SELECT S.StudentID, S.StudentName, COUNT(RD.BookID) AS BorrowedBooks
+FROM Student S
+JOIN Rental R ON S.StudentID = R.StudentID
+JOIN RentalDetails RD ON R.RentalID = RD.RentalID
+WHERE RD.ActualReturnDate > R.ReturnDate
+GROUP BY S.StudentID, S.StudentName
+HAVING COUNT(RD.BookID) > 0;
+
+SELECT * FROM rental
+
+--t1
+--insert data for trigger
+INSERT INTO Rental 
+VALUES (DEFAULT, 1201108250, 4, DATE('2023-05-01'), DEFAULT);
+
+CREATE TRIGGER SET_RETURNDATE AFTER
+INSERT ON RENTAL
+FOR EACH ROW MODE DB2SQL
+UPDATE RENTAL
+SET RETURNDATE =
+  (SELECT rentaldate + 21 DAY
+   FROM sysibm.sysdummy1);
+  
+SELECT * FROM RENTAL
+
+--t2
+  CREATE OR REPLACE TRIGGER RUNRETURNBOOK
+	BEFORE
+	UPDATE OF ACTUALRETURNDATE ON RENTALDETAILS
+	REFERENCING NEW AS N
+	FOR EACH ROW MODE DB2SQL
+	BEGIN 
+		DECLARE RETURNDATE DATE;
+		DECLARE CURRENTDATE DATE;
+		
+		SELECT RENTAL.RETURNDATE INTO RETURNDATE
+		FROM RENTAL
+		WHERE RENTAL.RENTALID = N.RENTALID;
+
+		IF (N.ACTUALRETURNDATE > RETURNDATE) THEN
+ 			SET N.CHARGE = ((N.ACTUALRETURNDATE - RETURNDATE) * 2);
+			UPDATE BOOK
+ 			SET bookcondition = 'BILLED'
+  			WHERE BOOK.BOOKID = N.BOOKID;
+		END IF;
+
+		IF (N.ACTUALRETURNDATE < RETURNDATE) THEN
+  			SET N.CHARGE = 0;
+  			UPDATE BOOK
+  			SET bookcondition = 'AVAILABLE'
+  			WHERE BOOK.BOOKID = N.BOOKID;
+		END IF;
+	END
+	
+	--test update
+	UPDATE RENTALDETAILS SET ACTUALRETURNDATE = '2023-06-30' WHERE RENTALDETAILSID = 13
+	SELECT * FROM RENTALDETAILS WHERE RENTALDETAILSID = 13
+	
+--t3
+CREATE OR REPLACE TRIGGER RETURNDATEVALIDATIONTRIGGER
+       BEFORE UPDATE OF ACTUALRETURNDATE ON RENTALDETAILS
+       REFERENCING NEW AS N
+       FOR EACH ROW MODE DB2SQL
+
+       BEGIN
+             DECLARE DATESTART DATE;
+             
+             SELECT RENTAL.RENTALDATE INTO DATESTART
+             FROM RENTAL
+             WHERE RENTAL.RENTALID = N.RENTALID;
+     
+             IF (N.ACTUALRETURNDATE < DATESTART) THEN
+                SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Return date must not be larger than rental date.';
+             END IF;
+       END
+       
+	--test update
+	UPDATE RENTALDETAILS SET ACTUALRETURNDATE = '2023-06-02' WHERE RENTALDETAILSID = 13
+       
+--t4
+CREATE TRIGGER limit_rentaldetails_per_rental
+BEFORE INSERT ON RentalDetails
+REFERENCING NEW AS N
+FOR EACH ROW
+MODE DB2SQL
+BEGIN ATOMIC
+    DECLARE count_rentaldetails INTEGER;
+
+
+    -- Count the number of RentalDetails already associated with the RentalID
+    SET count_rentaldetails = (
+        SELECT COUNT(*)
+        FROM RentalDetails
+        WHERE RentalID = N.RentalID
+    );
+
+
+    -- If there are already 3 RentalDetails for this RentalID, raise an exception
+    IF count_rentaldetails >= 3 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'A student may only borrow at most 3 books at a time';
+    END IF;
+END
+
+--test insert
+INSERT INTO RentalDetails
+VALUES (DEFAULT, 6, 11, DATE('2023-06-01'), DEFAULT);
+
+
+--t5
+CREATE OR REPLACE TRIGGER INSERTRENTALDETAILSTRIGGER
+      AFTER INSERT ON RENTALDETAILS
+      REFERENCING NEW AS N
+      FOR EACH ROW MODE DB2SQL 
+      BEGIN 
+            DECLARE PREVIOUSBOOKCONDITION VARCHAR(15);
+
+            SELECT BOOK.BOOKCONDITION INTO PREVIOUSBOOKCONDITION
+            FROM BOOK
+            WHERE BOOK.BOOKID = N.BOOKID;
+
+            IF (PREVIOUSBOOKCONDITION = 'AVAILABLE') THEN
+                UPDATE BOOK
+                SET bookcondition = 'NOT AVAILABLE'
+                WHERE BOOK.BOOKID = N.BOOKID;
+            ELSE SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'Book is not available for rental.';
+            END IF;
+      END
+      
+SELECT BOOKID, BOOKCONDITION FROM BOOK WHERE BOOKID = 3
+INSERT INTO RENTALDETAILS
+VALUES (DEFAULT, 13, 3, DATE('2023-05-01'), DEFAULT);
+      
+--sp1
+CREATE OR REPLACE PROCEDURE InsertRental (IN p_bookID INT, IN p_rentalDate DATE) 
+BEGIN 
+      DECLARE rental_ID INT DEFAULT 0; 
+      DECLARE conditionOfBook VARCHAR(15); 
+
+      SELECT BookCondition INTO conditionOfBook
+      FROM Book
+      WHERE BookID = p_bookID; 
+
+      IF conditionOfBook <> 'AVAILABLE' THEN 
+         SIGNAL SQLSTATE '45000'
+         SET MESSAGE_TEXT = 'The selected book is not available for rental.'; 
+      ELSE 
+         INSERT INTO Rental (RentalDate)
+         VALUES (p_rentalDate); 
+
+         SET rental_ID = IDENTITY_VAL_LOCAL();
+
+         INSERT INTO RentalDetails (RentalID, BookID)
+         VALUES (rental_ID, p_bookID); 
+      END IF; 
+END
+
+CALL InsertRental(3, '2023-06-15');
+
+SELECT * FROM RENTAL
+SELECT * FROM RENTALDETAILS
+
+--view1
+CREATE OR REPLACE VARIABLE SELECTEDSTUDENTID INT;
+
+
+SET SELECTEDSTUDENTID = 1221305203;
+
+
+CREATE VIEW StudentTransactions AS
+SELECT S.StudentID,
+       S.StudentName,
+       R.RentalID,
+       R.RentalDate,
+       NULL AS ReserveID,
+       NULL AS ReserveDate,
+       'Rental' AS TransactionType,
+       B.BookID,
+       B.BookName,
+       B.YearOfPublish
+FROM Student S
+LEFT JOIN Rental R ON S.StudentID = R.StudentID
+LEFT JOIN RentalDetails RD ON R.RentalID = RD.RentalID
+LEFT JOIN Book B ON RD.BookID = B.BookID
+WHERE S.StudentID = SELECTEDSTUDENTID 
+UNION ALL
+SELECT S.StudentID,
+       S.StudentName,
+       NULL AS RentalID,
+       NULL AS RentalDate,
+       RES.ReserveID,
+       RES.ReserveDate,
+       'Reservation' AS TransactionType,
+       B.BookID,
+       B.BookName,
+       B.YearOfPublish
+FROM Student S
+LEFT JOIN Reservation RES ON S.StudentID = RES.StudentID
+LEFT JOIN Book B ON RES.BookID = B.BookID
+WHERE S.StudentID = SELECTEDSTUDENTID;
+
+
+--Display the view by using--
+SELECT *
+FROM StudentTransactions;
+
+--view2
+CREATE VIEW StudentsWithDueCharges AS
+SELECT s.StudentID,
+       s.StudentName,
+       rd.Charge,
+       r.ReturnDate
+FROM Student s
+JOIN Rental r ON s.StudentID = r.StudentID
+JOIN RentalDetails rd ON r.RentalID = rd.RentalID
+WHERE r.ReturnDate < CURRENT_DATE
+  AND rd.ActualReturnDate IS NULL;
+
+
+SELECT *FROM StudentsWithDueCharges;
+
+--view3
+CREATE VIEW BooksToBeReturned AS
+SELECT *
+FROM Rental
+WHERE ReturnDate IS NOT NULL AND CURRENT_DATE >= ReturnDate;
+
+
+SELECT * FROM BooksToBeReturned;
+
+--view4
+CREATE OR REPLACE VARIABLE CHOSENAUTHOR INTEGER;
+
+SET CHOSENAUTHOR = 1;
+
+CREATE VIEW ALLBOOKSUNDERAUTHOR AS
+
+SELECT BOOKAUTHOR.BOOKID,
+       BOOKNAME,
+       PUBLISHERNAME
+FROM BOOKAUTHOR
+LEFT JOIN BOOK ON BOOK.BOOKID = BOOKAUTHOR.BOOKID
+LEFT JOIN PUBLISHER ON PUBLISHER.PUBLISHERID = BOOK.PUBLISHERID
+WHERE BOOKAUTHOR.AUTHORID = CHOSENAUTHOR;
+
+SELECT * FROM ALLBOOKSUNDERAUTHOR;
+
+--view5
+CREATE VIEW BookSearch AS
+SELECT B.BookID,
+       B.ShelfCode,
+       B.BookName,
+       B.YearOfPublish,
+       BA.AuthorID,
+       A.AuthorName,
+       B.BookCondition
+FROM Book B,
+     Author A,
+     BookAuthor BA
+WHERE B.BookID = BA.BookID
+  AND BA.AuthorID = A.AuthorID
+  AND LOWER(B.BookName) LIKE '%the%';
+ 
+ SELECT *
+FROM BookSearch;
+
+--sub1
+WITH PublisherBookCounts AS
+  (SELECT Publisher.PublisherID,
+          Publisher.PublisherName,
+          Publisher.PublisherAddress,
+          Publisher.PublisherEmail,
+          Publisher.PublisherPhone,
+          COUNT(Book.BookID) AS NumberOfBooks
+   FROM Publisher
+   JOIN Book ON Publisher.PublisherID = Book.PublisherID
+   GROUP BY Publisher.PublisherID,
+            Publisher.PublisherName,
+            Publisher.PublisherAddress,
+            Publisher.PublisherEmail,
+            Publisher.PublisherPhone)
+
+
+SELECT PublisherBookCounts.PublisherID,
+       PublisherBookCounts.PublisherName,
+       PublisherBookCounts.PublisherAddress,
+       PublisherBookCounts.PublisherEmail,
+       PublisherBookCounts.PublisherPhone,
+       PublisherBookCounts.NumberOfBooks
+FROM PublisherBookCounts
+WHERE PublisherBookCounts.NumberOfBooks =
+    (SELECT MAX(NumberOfBooks)
+     FROM PublisherBookCounts);WITH PublisherBookCounts AS
+  (SELECT Publisher.PublisherID,
+          Publisher.PublisherName,
+          Publisher.PublisherAddress,
+          Publisher.PublisherEmail,
+          Publisher.PublisherPhone,
+          COUNT(Book.BookID) AS NumberOfBooks
+   FROM Publisher
+   JOIN Book ON Publisher.PublisherID = Book.PublisherID
+   GROUP BY Publisher.PublisherID,
+            Publisher.PublisherName,
+            Publisher.PublisherAddress,
+            Publisher.PublisherEmail,
+            Publisher.PublisherPhone)
+
+
+SELECT PublisherBookCounts.PublisherID,
+       PublisherBookCounts.PublisherName,
+       PublisherBookCounts.PublisherAddress,
+       PublisherBookCounts.PublisherEmail,
+       PublisherBookCounts.PublisherPhone,
+       PublisherBookCounts.NumberOfBooks
+FROM PublisherBookCounts
+WHERE PublisherBookCounts.NumberOfBooks =
+    (SELECT MAX(NumberOfBooks)
+     FROM PublisherBookCounts);
+
+--not1
+(SELECT 'SUM OF BOOKS THAT CANNOT BE RENTED' AS BOOKCONDITION,
+     (SELECT COUNT(*)
+      FROM BOOK
+      WHERE BOOKCONDITION <> 'AVAILABLE') AS TOTALBOOKS
+   FROM BOOK
+   WHERE BOOKCONDITION <> 'AVAILABLE'
+   LIMIT 1)
+UNION ALL
+SELECT BOOKCONDITION,
+       COUNT (BOOKCONDITION) AS TOTALBOOKS
+FROM BOOK
+GROUP BY BOOKCONDITION
+
+--not2
+WITH RankedBooks AS
+  (SELECT RentalDetails.BookID,
+          Book.BookName,
+          Book.BookClassID,
+          Book.ShelfCode,
+          Book.YearOfPublish,
+          Book.BookCondition,
+          COUNT(RentalDetails.BookID) AS TimesRented,
+          RANK() OVER (PARTITION BY Book.BookClassID
+                       ORDER BY COUNT(RentalDetails.BookID) DESC) AS RankInCategory
+   FROM RentalDetails
+   JOIN Book ON RentalDetails.BookID = Book.BookID
+   GROUP BY RentalDetails.BookID,
+            Book.BookName,
+            Book.BookClassID,
+            Book.ShelfCode,
+            Book.YearOfPublish,
+            Book.BookCondition)
+
+SELECT RankedBooks.BookID,
+       RankedBooks.BookName,
+       RankedBooks.BookClassID,
+       RankedBooks.ShelfCode,
+       RankedBooks.YearOfPublish,
+       RankedBooks.BookCondition,
+       RankedBooks.TimesRented
+FROM RankedBooks
+WHERE RankedBooks.RankInCategory = 1
+ORDER BY RankedBooks.BookClassID;
+
+--not 3
+SELECT Student.StudentID,
+       Student.StudentName,
+       Student.StudentPhone,
+       Student.StudentEmail,
+       COALESCE(COUNT(Rental.StudentID), 0) AS BorrowedBooks,
+       CASE
+           WHEN COALESCE(COUNT(Rental.StudentID), 0) = 0 THEN 'Promote Reading'
+           ELSE 'Encourage More Reading'
+       END AS PromoteMessage
+FROM Student
+LEFT JOIN Rental ON Student.StudentID = Rental.StudentID
+GROUP BY Student.StudentID,
+         Student.StudentName,
+         Student.StudentPhone,
+         Student.StudentEmail
+HAVING COALESCE(COUNT(Rental.StudentID), 0) =
+  (SELECT MIN(BorrowedCount)
+   FROM
+     (SELECT COUNT(StudentID) AS BorrowedCount
+      FROM Rental
+      GROUP BY StudentID))
+OR COUNT(Rental.StudentID) = 0;
+
+--not4
+CREATE OR REPLACE VARIABLE STARTDATERANGE DATE;
+CREATE OR REPLACE VARIABLE ENDDATERANGE DATE;
+
+SET STARTDATERANGE = '2023-06-01';
